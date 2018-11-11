@@ -1,0 +1,44 @@
+https://github.com/jbossdemocentral/jboss-fuse-mqgateway-failoverdemo
+http://planet.jboss.org/post/jboss_fuse_a_mq_achieve_fault_tolerant_messaging_with_mq_gateway
+https://github.com/rafaeltuelho/jboss-eap-managed-on-docker
+
+#Docker 6.1
+https://github.com/paoloantinori/dockerfiles/tree/master/centos/fuse
+
+#Env
+https://github.com/edc4it/docker-images/blob/master/jboss-fuse/image/install.sh
+
+#Logging
+https://github.com/jboss-fuse/jboss-fuse-docker/blob/master/install.sh
+
+#???
+https://github.com/dwi67/docker-jboss-fuse-6.3
+
+#Project BPM on Fuse
+https://github.com/jbossdemocentral/bpms-fuse-travel-agency-integration-demo
+
+#Fuse 6.1
+https://github.com/weimeilin79/travelagency
+
+#Scripts
+https://github.com/paoloantinori/fuse_karaf_scripts
+
+#Maven settings
+https://github.com/jboss-fuse/fuse-karaf/blob/master/assemblies/fuse-karaf-framework/src/main/filtered-resources/resources/etc/org.ops4j.pax.url.mvn.cfg
+
+#external git server
+etc/io.fabric8.datastore.cfg
+https://access.redhat.com/documentation/en-us/red_hat_jboss_fuse/6.2.1/html/fabric_guide/git-external
+
+#Deploy via fabric8 plugin
+https://fabric8.io/gitbook/mavenPlugin.html
+https://dzone.com/articles/fuse-fabric-profile-migration
+
+----
+
+docker-compose.yml drone gogs
+docker-compose.yml drone Gitea
+
+https://github.com/aacebedo/dnsdock
+https://github.com/carlsverre/damn-simple-dns-proxy/blob/master/example/docker-compose.yml
+https://github.com/takus/nginx-consul-template

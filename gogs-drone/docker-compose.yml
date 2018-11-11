@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  gogs:
+    image: gogs/gogs
+    volumes:
+    - ./gogs:/data
+    ports:
+    - "10022:22"
+    - "3001:3000"
+
+  drone-server:
+    image: drone/drone:0.8
+    ports:
+      - "8001:8000"
+      - "9001:9000"
+    volumes:
+      - ./drone:/var/lib/drone/
+    restart: always
+    environment:
+      - DRONE_OPEN=true
+      - DRONE_HOST=http://192.168.1.112:8001
+      - DRONE_DEBUG=true
+      - DRONE_SECRET=ALQU2M0KdptXUdTPKcEw
+      - DRONE_GOGS=true
+      - DRONE_GOGS_URL=http://gogs:3000
+      - DRONE_GOGS_SKIP_VERIFY=false
+
+  drone-agent:
+    image: drone/agent:0.8
+    restart: always
+    depends_on:
+      - drone-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DRONE_SERVER=drone-server:9000
+      - DRONE_SECRET=ALQU2M0KdptXUdTPKcEw
+      - DRONE_DEBUG=true
+
+#  smtp:
+#    image: mailhog/mailhog:latest
+#    ports: 
+#      - "8025:8025"
+#    networks:
+#      - container
+#
+#networks:
+#  container:
