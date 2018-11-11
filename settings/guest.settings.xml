@@ -1,0 +1,42 @@
+<settings>
+    <profiles>
+        <profile>
+            <id>my-profile</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>nexus</id>
+                    <url>http://192.168.1.112:8081/repository/maven-public/</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>nexus</id>
+                    <name>fusesource</name>
+                    <url>http://192.168.1.112:8081/repository/maven-public/</url>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+    
+    <servers>
+	<server>
+	  <id>nexus-snapshots</id>
+	  <username>admin</username>
+	  <password>admin123</password>
+	</server>
+	<server>
+	  <id>nexus-releases</id>
+	  <username>admin</username>
+	  <password>admin123</password>
+	</server>
+    </servers> 
+</settings>

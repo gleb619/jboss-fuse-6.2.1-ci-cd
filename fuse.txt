@@ -42,3 +42,8 @@ docker-compose.yml drone Gitea
 https://github.com/aacebedo/dnsdock
 https://github.com/carlsverre/damn-simple-dns-proxy/blob/master/example/docker-compose.yml
 https://github.com/takus/nginx-consul-template
+
+
+---
+
+fabric:create --wait-for-provisioning --verbose --clean --bootstrap-timeout 60000 --new-user admin --new-user-password admin --zookeeper-password admin --resolver localip --external-git-url http://127.0.0.1:3001/root/fabric.git --external-git-user root --external-git-password root
