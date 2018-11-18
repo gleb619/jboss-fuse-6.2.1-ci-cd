@@ -1,0 +1,326 @@
+version: '3'
+
+services:
+
+########################
+#         CI           #
+########################
+
+  gogs:
+    depends_on:
+      - reverse-proxy
+    image: gogs/gogs
+    volumes:
+    - ./gogs:/data
+    ports:
+    - "10022:22"
+    - "3001:3000"
+  drone-server:
+    depends_on:
+      - reverse-proxy
+      - gogs
+    image: drone/drone:0.8
+    ports:
+      - "8001:8000"
+      - "9001:9000"
+    volumes:
+      - ./drone:/var/lib/drone/
+    restart: always
+    environment:
+      - DRONE_OPEN=true
+      - DRONE_HOST=http://0.0.0.0:8001
+      - DRONE_DEBUG=true
+      - DRONE_SECRET=ALQU2M0KdptXUdTPKcEw
+      - DRONE_GOGS=true
+      - DRONE_GOGS_URL=http://gogs:3000
+      - DRONE_GOGS_SKIP_VERIFY=false
+  drone-agent:
+    image: drone/agent:0.8
+    restart: always
+    depends_on:
+      - drone-server
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DRONE_SERVER=drone-server:9000
+      - DRONE_SECRET=ALQU2M0KdptXUdTPKcEw
+      - DRONE_DEBUG=true
+  nexus:
+    depends_on:
+      - reverse-proxy
+    image: sonatype/nexus3
+    volumes:
+      - ./nexus-data:/nexus-data
+    ports:
+      - "8081:8081"
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+########################
+#        OTHER         #
+########################
+
+  reverse-proxy:
+    image: traefik
+    command: --api --docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  portainer:
+    image: portainer/portainer
+    ports:
+      - 9002:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  smtp:
+    depends_on:
+      - reverse-proxy
+    image: mailhog/mailhog:latest
+    ports:
+      - "8025:8025"
+  whoami:
+    image: emilevauge/whoami
+    labels:
+      - "traefik.frontend.rule=Host:whoami.docker.localhost"
+  dnsdock:
+    depends_on:
+      - reverse-proxy
+    image: conz27/dnsdock
+    container_name: dnsdock
+    command: -nameserver  192.168.1.255:53 -nameserver 8.8.8.8:53
+    volumes:
+      - /var/run/docker.sock:/run/docker.sock
+    ports:
+      - 172.17.0.0:53:53/udp
+  consul:
+    depends_on:
+      - reverse-proxy
+    image: progrium/consul
+    command: -server -bootstrap -advertise 12.0.0.254 -log-level debug -ui-dir /ui
+    ports:
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:53/udp"
+    expose:
+      - "8300"
+      - "8301"
+      - "8301/udp"
+      - "8302"
+      - "8302/udp"
+  registrator:
+    depends_on:
+      - consul
+    image: gliderlabs/registrator:master
+    command: -internal consul://consul:8500
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    links:
+      - consul
+
+########################
+#      MONITORING      #
+########################
+
+   influxdb:
+    depends_on:
+      - reverse-proxy
+    image: tutum/influxdb:0.9
+    restart: always
+    environment:
+      - PRE_CREATE_DB=cadvisor
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+    expose:
+      - "8090"
+      - "8099"
+    volumes:
+      - ./data/influxdb:/data
+   grafana:
+    depends_on:
+      - reverse-proxy
+    image: grafana/grafana:2.6.0
+    restart: always
+    links:
+      - influxdb:influxsrv
+    ports:
+      - "3002:3000"
+    environment:
+      - HTTP_USER=admin
+      - HTTP_PASS=admin
+      - INFLUXDB_HOST=influxsrv
+      - INFLUXDB_PORT=8086
+      - INFLUXDB_NAME=cadvisor
+      - INFLUXDB_USER=fuseroot
+      - INFLUXDB_PASS=fuseroot
+   cadvisor:
+    depends_on:
+      - reverse-proxy
+    image: google/cadvisor:v0.29.0
+    links:
+      - influxdb:influxsrv
+    command: -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influxsrv:8086
+    restart: always
+    ports:
+      - "8082:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+########################
+#        LOGGING       #
+########################
+
+    elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.3.0
+      restart: always
+      environment:
+        - 'node.name=HEYJUDE'
+        - 'discovery.type=single-node'
+        - 'bootstrap.memory_lock=true'
+        - 'ES_JAVA_OPTS=-Xms256m -Xmx256m'
+      ports:
+        - 9200:9200
+#       - 9300:9300
+      volumes:
+        - type: bind
+          source: /var/lib/elasticsearch
+          target: /usr/share/elasticsearch/data
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: localhost:24224
+          fluentd-async-connect: 'true'
+          fluentd-retry-wait: '1s'
+          fluentd-max-retries: '30'
+          tag: ${LOG_OPT_TAG_PREFIX}.efk.elasticsearch
+
+    kibana:
+      image: docker.elastic.co/kibana/kibana-oss:6.3.0
+      restart: always
+#     ports:
+#      - 5601:5601
+      depends_on:
+        - elasticsearch
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: localhost:24224
+          fluentd-async-connect: 'true'
+          fluentd-retry-wait: '1s'
+          fluentd-max-retries: '30'
+          tag: ${LOG_OPT_TAG_PREFIX}.efk.kibana
+
+    fluentd:
+      image: qqbuby/fluentd:v1.2-es
+      ports:
+        - 127.0.0.1:24224:24224
+#       - 24224:24224/udp
+      volumes:
+        - ./fluentd/etc:/fluentd/etc
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "1G"
+          max-file: "2"
+
+    nginx:
+      image: nginx:1.13
+      restart: always
+      ports:
+        - 81:80
+      volumes:
+        - type: bind
+          source: ./nginx/nginx.conf
+          target: /etc/nginx/nginx.conf
+          read_only: true
+        - type: bind
+          source: ./nginx/conf.d
+          target: /etc/nginx/conf.d
+          read_only: true
+      depends_on:
+        - kibana
+      logging:
+        driver: fluentd
+        options:
+          fluentd-address: localhost:24224
+          fluentd-async-connect: 'true'
+          fluentd-retry-wait: '1s'
+          fluentd-max-retries: '30'
+          tag: alpha.efk.nginx
+
+########################
+#         FUSE         #
+########################
+
+  fuseadmin:
+    build: fuse/workdog
+    ports:
+      - "8181:8181"
+      - "8101:8101"
+    environment:
+      - FUSE_KARAF_NAME=fuseadmin
+      - FABRIC_USER=admin
+      - FABRIC_PASSWD=admin
+      - ZOOKEEPER_PASSWD=admin
+  fuseroot1:
+    build: fuse/workdog
+    ports:
+       - "8182:8181"
+       - "8102:8101"
+    environment:
+      - FUSE_KARAF_NAME=fuseroot1
+      - FABRIC_SERVER_NAME=fuseadmin
+      - ZOOKEEPER_PASSWD=admin
+    entrypoint: /opt/jboss/fuse/fabric-join.sh
+  fuseroot2:
+    build: fuse/workdog
+    ports:
+       - "8183:8181"
+       - "8103:8101"
+    environment:
+      - FUSE_KARAF_NAME=fuseroot2
+      - FABRIC_SERVER_NAME=fuseadmin
+      - ZOOKEEPER_PASSWD=admin
+    entrypoint: /opt/jboss/fuse/fabric-join.sh
+  fuseroot3:
+    build: fuse/workdog
+    ports:
+       - "8184:8181"
+       - "8104:8101"
+    environment:
+      - FUSE_KARAF_NAME=fuseroot3
+      - FABRIC_SERVER_NAME=fuseadmin
+      - ZOOKEEPER_PASSWD=admin
+    entrypoint: /opt/jboss/fuse/fabric-join.sh
+  fuseroot4:
+    build: fuse/workdog
+    ports:
+       - "8185:8181"
+       - "8105:8101"
+    environment:
+      - FUSE_KARAF_NAME=fuseroot4
+      - FABRIC_SERVER_NAME=fuseadmin
+      - ZOOKEEPER_PASSWD=admin
+    entrypoint: /opt/jboss/fuse/fabric-join.sh
+
+########################
+#         APPS         #
+########################
+
+   http:
+    image: nginxdemos/hello:latest
+    labels:
+      SERVICE_80_NAME: http
+      SERVICE_80_CHECK_HTTP: /
+      SERVICE_80_CHECK_INTERVAL: 5s
+      SERVICE_443_IGNORE: 'yes'
+      SERVICE_TAGS: production
+    ports:
+    - "83"
