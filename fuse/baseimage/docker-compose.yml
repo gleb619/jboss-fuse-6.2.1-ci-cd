@@ -1,8 +1,0 @@
-dnsdock:
-    image: conz27/dnsdock
-    container_name: dnsdock
-    command: -nameserver  192.168.1.255:53 -nameserver 8.8.8.8:53
-    volumes:
-        - /var/run/docker.sock:/run/docker.sock
-    ports:
-        - 172.17.0.0:53:53/udp

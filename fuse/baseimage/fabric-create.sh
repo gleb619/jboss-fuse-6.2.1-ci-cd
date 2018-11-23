@@ -46,7 +46,19 @@ do
 done
 
 # Create the fabric
-/opt/jboss/fuse/bin/client "fabric:create --wait-for-provisioning --verbose --clean --bootstrap-timeout 60000 --new-user ${FABRIC_USER} --new-user-password ${FABRIC_PASSWD} --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip"
+/opt/jboss/fuse/bin/client "shell:source fabric-create.script"
+sleep 10
+sed -i "s/-XX:+UnsyncloadClass /-XX:+UnsyncloadClass\ -XX:MaxPermSize=512m -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:+AggressiveOpts -XX:+CMSClassUnloadingEnabled /" /opt/jboss/fuse/instances/instance.properties
+#/opt/jboss/fuse/bin/client "fabric:create --wait-for-provisioning --verbose --clean --bootstrap-timeout 60000 --new-user ${FABRIC_USER} --new-user-password ${FABRIC_PASSWD} --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip"
+
+#git clone http://${FABRIC_USER}:${FABRIC_PASSWD}@127.0.0.1:8181/git/fabric fabric_local
+#cd fabric_local
+#git checkout -b 1.1
+#
+#git commit -m "Configured fuse to wotk with settings.xml"
+#git push
+#cd -
+#rm -rf fabric_local
 
 # Add managed server using ssh commands
 echo "Managed servers to create" ${MANAGED_HOSTS}

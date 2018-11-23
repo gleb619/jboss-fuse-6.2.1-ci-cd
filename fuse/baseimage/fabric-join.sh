@@ -47,7 +47,8 @@ do
 done
 
 # Join the fabric
-/opt/jboss/fuse/bin/client "fabric:join --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip ${FABRIC_SERVER_NAME} ${FUSE_KARAF_NAME}"
+#/opt/jboss/fuse/bin/client "fabric:join --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip ${FABRIC_SERVER_NAME} ${FUSE_KARAF_NAME}"
+/opt/jboss/fuse/bin/client "shell:source fabric-join.script"
 
 # Wait for fuse to end
 echo Fuse Fabric Server ready for requests

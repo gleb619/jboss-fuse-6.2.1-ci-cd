@@ -19,10 +19,10 @@ ENV FUSE_VERSION 6.2.1.0.redhat-084 \
 	FUSE_PUBLIC_ZOOKEEPER_PORT 2181
 
 # Install fuse in the image.
-COPY install.sh io.fabric8.datastore.cfg io.fabric8.maven.cfg org.ops4j.pax.url.mvn.cfg settings.xml users.properties fabric-create.sh fabric-join.sh jboss-fuse-full-6.2.1.redhat-084.zip /opt/jboss/
+COPY install.sh config.sh io.fabric8.datastore.cfg io.fabric8.maven.cfg org.ops4j.pax.url.mvn.cfg settings.xml users.properties fabric-create.sh fabric-join.sh jboss-fuse-full-6.2.1.redhat-084.zip /opt/jboss/
 RUN /opt/jboss/install.sh
 
-EXPOSE 8181 8101 1099 44444 61616 1883 5672 61613 61617 8883 5671 61614 2181
+EXPOSE 8181 8101 1099 40040 44444 61616 1883 5672 61613 61617 8883 5671 61614 2181
 
 #
 # The following directories can hold config/data, so lets suggest the user

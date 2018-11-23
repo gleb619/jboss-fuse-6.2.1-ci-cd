@@ -11,8 +11,14 @@
 # Lets fail fast if any command in this script does succeed.
 set -e
 
+echo "
+timeout=20
+retries=5
+" >> /etc/yum.conf
+
 yum -y update
 #yum -y install openssh-server passwd htop mtr nano which telnet unzip openssh-server sudo openssh-clients wget curl tar iptables perl git bash-completion iproute mc
+yum -y install git
 yum clean all -y
 rm -rf /var/cache/yum
 
@@ -21,6 +27,15 @@ export INSTANCE_ID="$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo '
 # Lets switch to the /opt/jboss dir
 #
 cd /opt/jboss
+echo $INSTANCE_ID > .instance
+
+mkdir test
+cd test
+git init
+git config --global user.email "${INSTANCE_ID}@example.com"
+git config --global user.name "${INSTANCE_ID}"
+cd -
+rm -rf test
 
 # Download and extract the distro
 #curl -O ${FUSE_DISTRO_URL}
@@ -35,9 +50,7 @@ cd /opt/jboss
 #mvn archetype:generate -DgroupId=com.mycompany.app -DartifactId=my-app -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 #cd my-app
 #mvn clean package -q
-#git init
-#git config --global user.email "${INSTANCE_ID}@example.com"
-#git config --global user.name "${INSTANCE_ID}"
+
 #git add .
 #git commit -m "Initial" -q
 #cd ..
@@ -53,9 +66,9 @@ rm fuse/bin/*.bat fuse/bin/start fuse/bin/stop fuse/bin/status fuse/bin/patch
 rm -rf fuse/extras
 rm -rf fuse/quickstarts
 
-mv -f io.fabric8.datastore.cfg fuse/etc
-mv -f io.fabric8.maven.cfg fuse/etc
-mv -f org.ops4j.pax.url.mvn.cfg fuse/etc
+#mv -f io.fabric8.datastore.cfg fuse/etc
+#mv -f io.fabric8.maven.cfg fuse/etc
+#mv -f org.ops4j.pax.url.mvn.cfg fuse/etc
 mv -f users.properties fuse/etc
 mv -f fabric-create.sh fuse/bin
 mv -f fabric-join.sh fuse/bin
@@ -108,6 +121,9 @@ log4j.appender.stdout.layout.ConversionPattern=%d{ABSOLUTE} | %-5.5p | %-16.16t 
 
 echo '
 bind.address=0.0.0.0
+karaf.shell.init.script=${karaf.etc}/shell.init.script
 '>> fuse/etc/system.properties
+
+sed -i 's/-Dcom.sun.management.jmxremote/-Dcom.sun.management.jmxremote -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:+AggressiveOpts -XX:+CMSClassUnloadingEnabled/' fuse/bin/karaf
 
 rm /opt/jboss/install.sh
