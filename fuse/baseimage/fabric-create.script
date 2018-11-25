@@ -1,8 +1,0 @@
-fabric:create --wait-for-provisioning --verbose --clean --bootstrap-timeout 60000 --new-user ${FABRIC_USER} --new-user-password ${FABRIC_PASSWD} --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip
-
-fabric:mq-create --data ${data}/amq --kind MasterSlave --minimumInstances 2 --group esb ${FUSE_KARAF_NAME}amq
-fabric:profile-edit --pid org.fusesource.mq.fabric.cf/user=fabric mq-client-esb
-fabric:profile-edit --pid org.fusesource.mq.fabric.cf/password=${FABRIC_PASSWD} mq-client-esb
-
-container-create-child --profile mq-broker-esb.amq --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${HOST_NAME} ${FUSE_KARAF_NAME}amq 2
-container-create-child --profile default --profile mq-client-esb --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${HOST_NAME} ${FUSE_KARAF_NAME}esb 2

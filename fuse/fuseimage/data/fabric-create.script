@@ -1,0 +1,13 @@
+#echo 'Creating fabric'
+#fabric:create --wait-for-provisioning --verbose --clean --bootstrap-timeout 60000 --new-user ${FABRIC_USER} --new-user-password ${FABRIC_PASSWD} --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip
+#echo 'Fabric is created'
+
+echo 'Creating mq profile'
+fabric:mq-create --data ${data}/amq --kind MasterSlave --minimumInstances 1 --group esb ${FUSE_KARAF_NAME}.amq
+fabric:profile-edit --pid org.fusesource.mq.fabric.cf/user=${FABRIC_USER} mq-client-esb
+fabric:profile-edit --pid org.fusesource.mq.fabric.cf/password=${FABRIC_PASSWD} mq-client-esb
+
+echo 'Creating containers'
+container-create-child --profile mq-broker-esb.${FUSE_KARAF_NAME}.amq --jvm-opts -XX:+UseG1GC --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}amq
+container-create-child --profile default --profile mq-client-esb --jvm-opts -XX:+UseG1GC --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}esb
+container-create-child --profile default --profile gateway-mq --profile gateway-http --jvm-opts -XX:+UseG1GC --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}gateway

@@ -1,4 +1,0 @@
-fabric:join --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip ${FABRIC_SERVER_NAME} ${FUSE_KARAF_NAME}
-
-container-create-child --profile mq-broker-esb.amq --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${HOST_NAME} ${FUSE_KARAF_NAME}amq 2
-container-create-child --profile default --profile mq-client-esb --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${HOST_NAME} ${FUSE_KARAF_NAME}esb 2

@@ -45,18 +45,18 @@ services:
 #      - DRONE_SERVER=drone-server:9000
 #      - DRONE_SECRET=ALQU2M0KdptXUdTPKcEw
 #      - DRONE_DEBUG=true
-  nexus:
-    # depends_on:
-    #   - reverse-proxy
-    image: sonatype/nexus3
-    volumes:
-      - ./nexus-data:/nexus-data
-    ports:
-      - "8081:8081"
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
+#  nexus:
+#    # depends_on:
+#    #   - reverse-proxy
+#    image: sonatype/nexus3
+#    volumes:
+#      - ./nexus-data:/nexus-data
+#    ports:
+#      - "8081:8081"
+#    ulimits:
+#      nofile:
+#        soft: 65536
+#        hard: 65536
 
 ########################
 #        OTHER         #
@@ -260,41 +260,34 @@ services:
 ########################
 
   fuseadmin:
-    build: fuse/workdog
+    build: fuse/workimage
     ports:
       - "8181:8181"
       - "8101:8101"
+      - "9000:9000"
     environment:
       - FUSE_KARAF_NAME=fuseadmin
       - FABRIC_USER=admin
       - FABRIC_PASSWD=admin
       - ZOOKEEPER_PASSWD=admin
   fuseroot1:
-    build: fuse/workdog
+    build: fuse/workimage
     ports:
        - "8182:8181"
        - "8102:8101"
     environment:
       - FUSE_KARAF_NAME=fuseroot1
-      - FABRIC_SERVER_NAME=fuseadmin
-      - FABRIC_USER=admin
-      - FABRIC_PASSWD=admin
-      - ZOOKEEPER_PASSWD=admin
     entrypoint: /opt/jboss/fuse/bin/fabric-join.sh
   fuseroot2:
-    build: fuse/workdog
+    build: fuse/workimage
     ports:
        - "8183:8181"
        - "8103:8101"
     environment:
       - FUSE_KARAF_NAME=fuseroot2
-      - FABRIC_SERVER_NAME=fuseadmin
-      - FABRIC_USER=admin
-      - FABRIC_PASSWD=admin
-      - ZOOKEEPER_PASSWD=admin
     entrypoint: /opt/jboss/fuse/bin/fabric-join.sh
 #  fuseroot3:
-#    build: fuse/workdog
+#    build: fuse/workimage
 #    ports:
 #       - "8184:8181"
 #       - "8104:8101"
@@ -306,7 +299,7 @@ services:
 #      - ZOOKEEPER_PASSWD=admin
 #    entrypoint: /opt/jboss/fuse/bin/fabric-join.sh
 #  fuseroot4:
-#    build: fuse/workdog
+#    build: fuse/workimage
 #    ports:
 #       - "8185:8181"
 #       - "8105:8101"
