@@ -64,12 +64,12 @@ mkdir -p /opt/jboss/fuse/kahadb
 #
 # Let the karaf container name/id come from setting the FUSE_KARAF_NAME && FUSE_RUNTIME_ID env vars
 # default to using the container hostname.
-sed -i -e 's/environment.prefix=FABRIC8_/environment.prefix=FUSE_/' fuse/etc/system.properties
-sed -i -e '/karaf.name = root/d' fuse/etc/system.properties
-sed -i -e '/runtime.id=/d' fuse/etc/system.properties
+#sed -i -e 's/environment.prefix=FABRIC8_/environment.prefix=FUSE_/' fuse/etc/system.properties
+sed -i -e 's/karaf.name = root/karaf.name = ${docker.karaf.name}/' fuse/etc/system.properties
 sed -i -e 's/activemq.host = localhost/activemq.host = 0.0.0.0/' fuse/etc/system.properties
-sed -i -e 's/bind.address = localhost/bind.address = 0.0.0.0/' fuse/etc/system.properties
 sed -i -e 's/${data}\/kahadb/\/opt\/jboss\/fuse\/kahadb/' fuse/etc/activemq.xml
+echo 'bind.address = 0.0.0.0
+'>> fuse/etc/system.properties
 
 echo '
 if [ -z "$FUSE_KARAF_NAME" ]; then 
@@ -80,7 +80,7 @@ if [ -z "$FUSE_RUNTIME_ID" ]; then
 fi
 
 export KARAF_OPTS="-Dnexus.addr=${NEXUS_PORT_8081_TCP_ADDR} -Dnexus.port=${NEXUS_PORT_8081_TCP_PORT} $KARAF_OPTS"
-export KARAF_OPTS="-Dkaraf.name=${FUSE_KARAF_NAME} -Druntime.id=${FUSE_RUNTIME_ID} -Djava.net.preferIPv4Stack=true $KARAF_OPTS"
+export KARAF_OPTS="-Ddocker.karaf.name=${FUSE_KARAF_NAME} -Djava.net.preferIPv4Stack=true $KARAF_OPTS"
 '>> fuse/bin/setenv
 
 sed -i -e 's/fuseearlyaccess$/&,http:\/\/${nexus.addr}:${nexus.port}\/repository\/releases@id=nexus.release.repo,  http:\/\/${nexus.addr}:${nexus.port}\/repository\/snapshots@id=nexus.snapshot.repo@snapshots/' fuse/etc/org.ops4j.pax.url.mvn.cfg

@@ -50,11 +50,11 @@ then
 	echo "Fabric already configured"
 	find /opt/jboss/fuse/instances/ -maxdepth 3 -type f -executable -name 'start' -exec {} \;
 else
-    sleep 30
+    sleep 50
     ( echo "cat <<EOF" ; cat /opt/jboss/fuse/fabric-create.script ; echo EOF ) | sh > /opt/jboss/fuse/fabric-create.tmp
     cat /opt/jboss/fuse/fabric-create.tmp > /opt/jboss/fuse/fabric-create.script
     echo 'Executing script'
-    /opt/jboss/fuse/bin/client -v -r 10 -d 20 "shell:source fabric-create.script"
+    /opt/jboss/fuse/bin/client -v -r 10 -d 10 "shell:source fabric-create.script"
     echo 'Script was executed'
     rm -f /opt/jboss/jboss-fuse/fabric-*.*
     touch .log
