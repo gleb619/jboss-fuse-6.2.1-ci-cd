@@ -6,8 +6,7 @@ MAINTAINER Boris Velichko <boris86496@gmail.com>
 USER root
 
 # Set the FUSE_VERSION env variable
-ENV FUSE_VERSION 6.2.1.0.redhat-084 \
-	FUSE_PUBLIC_OPENWIRE_PORT 61616 \
+ENV FUSE_PUBLIC_OPENWIRE_PORT 61616 \
 	FUSE_PUBLIC_MQTT_PORT 1883 \
 	FUSE_PUBLIC_AMQP_PORT 5672 \
 	FUSE_PUBLIC_STOMP_PORT 61613 \
@@ -28,7 +27,7 @@ COPY install.sh \
     data/fabric-join.sh \
     data/fabric-create.script \
     data/fabric-join.script \
-    data/jboss-fuse-full-6.2.1.redhat-084.zip \
+    data/jboss-fuse-karaf-6.3.0.redhat-187.zip \
     /opt/jboss/
 
 RUN /opt/jboss/install.sh
@@ -48,12 +47,11 @@ EXPOSE 8181 \
        61614 \
        2181
 
-#
 # The following directories can hold config/data, so lets suggest the user
 # mount them as volumes.
-VOLUME /opt/jboss/fuse/data
-#VOLUME /opt/jboss/fuse/system
-VOLUME /opt/jboss/fuse/instances
+#VOLUME /opt/jboss/fuse/data
+#VOLUME /opt/jboss/fuse/kahadb
+#VOLUME /opt/jboss/fuse/instances
 
 # lets default to the jboss-fuse dir so folks can more easily navigate to around the server install
 WORKDIR /opt/jboss/fuse

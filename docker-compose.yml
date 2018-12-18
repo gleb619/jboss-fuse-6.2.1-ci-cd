@@ -62,6 +62,16 @@ services:
 #        OTHER         #
 ########################
 
+#  reverse-proxy-2:
+#    image: nginx:latest
+#    container_name: nginx
+#    ports:
+#      - '81:80'
+#      - '444:443'
+#    volumes:
+#      - ./nginx2:/etc/nginx/conf.d
+#      - ./logs/nginx:/var/log/nginx
+#    restart: always
 #  reverse-proxy:
 #    image: traefik
 #    command: --api --docker
@@ -261,6 +271,7 @@ services:
 
   fuseadmin:
     build: fuse/workimage
+    container_name: fuseadmin
     ports:
       - "8181:8181"
       - "8101:8101"
@@ -272,20 +283,21 @@ services:
       - ZOOKEEPER_PASSWD=admin
   fuseroot1:
     build: fuse/workimage
+    container_name: fuseroot1
     ports:
        - "8182:8181"
        - "8102:8101"
     environment:
       - FUSE_KARAF_NAME=fuseroot1
     entrypoint: /opt/jboss/fuse/bin/fabric-join.sh
-  fuseroot2:
-    build: fuse/workimage
-    ports:
-       - "8183:8181"
-       - "8103:8101"
-    environment:
-      - FUSE_KARAF_NAME=fuseroot2
-    entrypoint: /opt/jboss/fuse/bin/fabric-join.sh
+#  fuseroot2:
+#    build: fuse/workimage
+#    ports:
+#       - "8183:8181"
+#       - "8103:8101"
+#    environment:
+#      - FUSE_KARAF_NAME=fuseroot2
+#    entrypoint: /opt/jboss/fuse/bin/fabric-join.sh
 #  fuseroot3:
 #    build: fuse/workimage
 #    ports:

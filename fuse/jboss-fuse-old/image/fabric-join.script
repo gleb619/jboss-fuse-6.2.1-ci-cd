@@ -1,0 +1,3 @@
+echo 'Creating containers'
+container-create-child --profile mq-broker-esb.${FABRIC_SERVER_NAME}.amq --jvm-opts -XX:+UseG1GC --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}.amq
+container-create-child --profile default --profile mq-client-esb --jvm-opts -XX:+UseG1GC --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}.esb

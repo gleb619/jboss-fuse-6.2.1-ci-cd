@@ -48,18 +48,17 @@ done
 if [ -f ".log" ]
 then
 	echo "Fabric already configured"
+	find /opt/jboss/fuse/instances/ -maxdepth 3 -type f -executable -name 'start' -exec {} \;
 else
-    /opt/jboss/fuse/bin/client -v "fabric:create --wait-for-provisioning --verbose --new-user ${FABRIC_USER} --new-user-password ${FABRIC_PASSWD} --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip"
-    sleep 20
-    /opt/jboss/fuse/bin/client -v -r 10 -d 20 "osgi:restart org.apache.karaf.shell.ssh"
-    sleep 20
-    # Create the fabric
+    sleep 30
     ( echo "cat <<EOF" ; cat /opt/jboss/fuse/fabric-create.script ; echo EOF ) | sh > /opt/jboss/fuse/fabric-create.tmp
     cat /opt/jboss/fuse/fabric-create.tmp > /opt/jboss/fuse/fabric-create.script
     echo 'Executing script'
     /opt/jboss/fuse/bin/client -v -r 10 -d 20 "shell:source fabric-create.script"
     echo 'Script was executed'
+    rm -f /opt/jboss/jboss-fuse/fabric-*.*
     touch .log
+    echo '' > /opt/jboss/fuse/etc/users.properties
     #sed -i "s/-XX:+UnsyncloadClass /-XX:+UnsyncloadClass\ -XX:MaxPermSize=512m -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:+AggressiveOpts -XX:+CMSClassUnloadingEnabled /" /opt/jboss/fuse/instances/instance.properties
     #rm -rf /opt/jboss/fuse/fabric-create.*
     #/opt/jboss/fuse/bin/client "fabric:create --wait-for-provisioning --verbose --clean --bootstrap-timeout 60000 --new-user ${FABRIC_USER} --new-user-password ${FABRIC_PASSWD} --zookeeper-password ${ZOOKEEPER_PASSWD} --resolver localip"

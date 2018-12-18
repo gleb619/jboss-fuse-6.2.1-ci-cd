@@ -45,8 +45,9 @@ rm -rf test
 #cd ..
 #rm -rf my-app
 
-unzip -q jboss-fuse-full-6.2.1.redhat-084.zip
-mv jboss-fuse-6.2.1.redhat-084 fuse
+unzip -q jboss-fuse-karaf-6.3.0.redhat-187.zip
+mv jboss-fuse-6.3.0.redhat-187 fuse
+chmod a+x fuse/bin/*
 
 #mv -f io.fabric8.datastore.cfg fuse/etc
 #mv -f io.fabric8.maven.cfg fuse/etc
@@ -58,7 +59,7 @@ mv -f settings.xml fuse
 mv -f fabric-join.script fuse
 mv -f fabric-create.script fuse
 
-chmod a+x fuse/bin/*
+mkdir -p /opt/jboss/fuse/kahadb
 
 #
 # Let the karaf container name/id come from setting the FUSE_KARAF_NAME && FUSE_RUNTIME_ID env vars
@@ -66,6 +67,10 @@ chmod a+x fuse/bin/*
 sed -i -e 's/environment.prefix=FABRIC8_/environment.prefix=FUSE_/' fuse/etc/system.properties
 sed -i -e '/karaf.name = root/d' fuse/etc/system.properties
 sed -i -e '/runtime.id=/d' fuse/etc/system.properties
+sed -i -e 's/activemq.host = localhost/activemq.host = 0.0.0.0/' fuse/etc/system.properties
+sed -i -e 's/bind.address = localhost/bind.address = 0.0.0.0/' fuse/etc/system.properties
+sed -i -e 's/${data}\/kahadb/\/opt\/jboss\/fuse\/kahadb/' fuse/etc/activemq.xml
+
 echo '
 if [ -z "$FUSE_KARAF_NAME" ]; then 
   export FUSE_KARAF_NAME="$HOSTNAME"
@@ -74,8 +79,11 @@ if [ -z "$FUSE_RUNTIME_ID" ]; then
   export FUSE_RUNTIME_ID="$FUSE_KARAF_NAME"
 fi
 
-export KARAF_OPTS="-Dkaraf.name=${FUSE_KARAF_NAME} -Druntime.id=${FUSE_RUNTIME_ID} -Djava.net.preferIPv4Stack=true"
+export KARAF_OPTS="-Dnexus.addr=${NEXUS_PORT_8081_TCP_ADDR} -Dnexus.port=${NEXUS_PORT_8081_TCP_PORT} $KARAF_OPTS"
+export KARAF_OPTS="-Dkaraf.name=${FUSE_KARAF_NAME} -Druntime.id=${FUSE_RUNTIME_ID} -Djava.net.preferIPv4Stack=true $KARAF_OPTS"
 '>> fuse/bin/setenv
+
+sed -i -e 's/fuseearlyaccess$/&,http:\/\/${nexus.addr}:${nexus.port}\/repository\/releases@id=nexus.release.repo,  http:\/\/${nexus.addr}:${nexus.port}\/repository\/snapshots@id=nexus.snapshot.repo@snapshots/' fuse/etc/org.ops4j.pax.url.mvn.cfg
 
 #
 # Move the bundle cache and tmp directories outside of the data dir so it's not persisted between container runs
@@ -84,6 +92,7 @@ mv fuse/data/tmp fuse/tmp
 echo '
 org.osgi.framework.storage=${karaf.base}/tmp/cache
 '>> fuse/etc/config.properties
+
 sed -i -e 's/-Djava.io.tmpdir="$KARAF_DATA\/tmp"/-Djava.io.tmpdir="$KARAF_BASE\/tmp"/' fuse/bin/karaf
 sed -i -e 's/-Djava.io.tmpdir="$KARAF_DATA\/tmp"/-Djava.io.tmpdir="$KARAF_BASE\/tmp"/' fuse/bin/fuse
 sed -i -e 's/-Djava.io.tmpdir="$KARAF_DATA\/tmp"/-Djava.io.tmpdir="$KARAF_BASE\/tmp"/' fuse/bin/client
@@ -91,7 +100,8 @@ sed -i -e 's/-Djava.io.tmpdir="$KARAF_DATA\/tmp"/-Djava.io.tmpdir="$KARAF_BASE\/
 sed -i -e 's/${karaf.data}\/generated-bundles/${karaf.base}\/tmp\/generated-bundles/' fuse/etc/org.apache.felix.fileinstall-deploy.cfg
 
 # lets remove the karaf.delay.console=true to disable the progress bar
-sed -i -e 's/karaf.delay.console=true/karaf.delay.console=false/' fuse/etc/config.properties 
+sed -i -e 's/karaf.delay.console=true/karaf.delay.console=false/g' fuse/etc/config.properties
+sed -i -e 's/karaf.delay.console=true/karaf.delay.console=false/' fuse/etc/custom.properties
 echo '
 # Root logger
 log4j.rootLogger=INFO, stdout, osgi:*VmLogAppender
@@ -103,14 +113,11 @@ log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
 log4j.appender.stdout.layout.ConversionPattern=%d{ABSOLUTE} | %-5.5p | %-16.16t | %-32.32c{1} | %X{bundle.id} - %X{bundle.name} - %X{bundle.version} | %m%n
 ' > fuse/etc/org.ops4j.pax.logging.cfg
 
-echo '
-bind.address=0.0.0.0
-karaf.shell.init.script=${karaf.etc}/shell.init.script
-'>> fuse/etc/system.properties
-
 sed -i 's/-Dcom.sun.management.jmxremote/-Dcom.sun.management.jmxremote -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:+AggressiveOpts -XX:+CMSClassUnloadingEnabled/' fuse/bin/karaf
 
-rm jboss-fuse-full-6.2.1.redhat-084.zip
+rm -rf fuse/extras
+rm -rf fuse/quickstarts
+rm jboss-fuse-karaf-6.3.0.redhat-187.zip
 rm fuse/bin/*.bat fuse/bin/start fuse/bin/stop fuse/bin/status fuse/bin/patch
 rm -rf fuse/extras
 rm -rf fuse/quickstarts

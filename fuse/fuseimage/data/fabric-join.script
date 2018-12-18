@@ -1,7 +1,3 @@
-#echo 'Connecting to fabric'
-#fabric:join --zookeeper-password ${ZOOKEEPER_PASSWD} ${FABRIC_SERVER_NAME} ${FUSE_KARAF_NAME}
-#echo 'Connected to fabric'
-
 echo 'Creating containers'
-container-create-child --profile mq-broker-esb.${FABRIC_SERVER_NAME}.amq --jvm-opts -XX:+UseG1GC --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}amq
-container-create-child --profile default --profile mq-client-esb --jvm-opts -XX:+UseG1GC --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}esb
+container-create-child --profile mq-broker-esb.${FABRIC_SERVER_NAME}.amq --jvm-opts "-XX:MaxPermSize=256m -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:+AggressiveOpts -XX:+CMSClassUnloadingEnabled" --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}.amq
+container-create-child --profile default --profile mq-client-esb --jvm-opts "-XX:MaxPermSize=256m -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:+AggressiveOpts -XX:+CMSClassUnloadingEnabled" --jmx-user ${FABRIC_USER} --jmx-password ${FABRIC_PASSWD} ${FUSE_KARAF_NAME} ${FUSE_KARAF_NAME}.esb

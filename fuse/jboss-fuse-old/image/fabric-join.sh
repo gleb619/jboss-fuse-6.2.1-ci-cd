@@ -21,7 +21,7 @@ fi
 # Run standalone version of fuse
 #
 echo "Starting JBoss Fuse"
-/opt/jboss/fuse/bin/fuse server & FUSE_SERVER=$!
+/opt/jboss/jboss-fuse/bin/fuse server & FUSE_SERVER=$!
 
 sleep 200
 #
@@ -31,7 +31,7 @@ count=0
 while :
 do
 	echo "Wait for container"
-	/opt/jboss/fuse/bin/client "version"; return=$?
+	/opt/jboss/jboss-fuse/bin/client "version"; return=$?
 	if [ $return -eq 0 ]; then
 		sleep 15
 		break
@@ -49,7 +49,7 @@ done
 if [ -f ".log" ]
 then
 	echo "Fabric already configured"
-	find /opt/jboss/fuse/instances/ -maxdepth 3 -type f -executable -name 'start' -exec {} \;
+	find /opt/jboss/jboss-fuse/instances/ -maxdepth 3 -type f -executable -name 'start' -exec {} \;
 else
     sleep $[($RANDOM % 20) + 40]s
 
@@ -67,19 +67,20 @@ else
         sleep 5
     done
 
-    /opt/jboss/fuse/bin/client -v "fabric:join --resolver localip --zookeeper-password ${ZOOKEEPER_PASSWD} ${FABRIC_SERVER_NAME} ${FUSE_KARAF_NAME}"
+    /opt/jboss/jboss-fuse/bin/client -v "fabric:join --resolver localip --zookeeper-password ${ZOOKEEPER_PASSWD} ${FABRIC_SERVER_NAME} ${FUSE_KARAF_NAME}"
     sleep 30
+    /opt/jboss/jboss-fuse/bin/client -v "version-list"
 
     # Join the fabric
-    ( echo "cat <<EOF" ; cat /opt/jboss/fuse/fabric-join.script ; echo EOF ) | sh > /opt/jboss/fuse/fabric-join.tmp
-    cat /opt/jboss/fuse/fabric-join.tmp > /opt/jboss/fuse/fabric-join.script
+    ( echo "cat <<EOF" ; cat /opt/jboss/jboss-fuse/fabric-join.script ; echo EOF ) | sh > /opt/jboss/jboss-fuse/fabric-join.tmp
+    cat /opt/jboss/jboss-fuse/fabric-join.tmp > /opt/jboss/jboss-fuse/fabric-join.script
     echo 'Executing script'
-    /opt/jboss/fuse/bin/client -v -r 10 -d 20 "shell:source fabric-join.script"
+    /opt/jboss/jboss-fuse/bin/client -v -r 10 -d 10 "shell:source fabric-join.script"
     echo 'Script was executed'
     rm -f /opt/jboss/jboss-fuse/fabric-*.*
     touch .log
-    echo '' > /opt/jboss/fuse/etc/users.properties
-    #rm -rf /opt/jboss/fuse/fabric-join.*
+    echo '' > /opt/jboss/jboss-fuse/etc/users.properties
+    #rm -rf /opt/jboss/jboss-fuse/fabric-join.*
 fi
 
 # Wait for fuse to end
