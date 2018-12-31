@@ -1,0 +1,15 @@
+version: '3.1'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./logs:/var/log/nginx
+      - ./auth/htpasswd:/etc/nginx/authnginx/htpasswd
+      - ./pages/backend-not-found.html /var/www/html/backend-not-found.html
+    network_mode: host
+    restart: always
